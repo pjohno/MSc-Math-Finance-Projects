@@ -1,0 +1,115 @@
+#include "boost/process.hpp"
+#include "MSc_projects_gnuplot.hpp"
+#include <iostream>
+#include <iosfwd>
+#include <boost/chrono.hpp>
+#include <sstream>
+
+namespace MSC_PROJECTS
+{
+  
+  gnuplotImage GnuplotWidget::plotData(const std::vector<double> &x,const std::vector<double> &y,std::istream* commands)
+  {
+    
+    int xn = x.size();
+    int yn = y.size();
+    if(xn!=yn){
+      std::cerr << " GnuplotWidget::plotData(x,y) := BAD SIZING OF VECTORS " << std::endl;
+      return { "" };
+    }
+    
+    boost::process::opstream inputStream;
+    boost::process::ipstream outputStream;
+    boost::process::child myProcess("gnuplot",boost::process::std_out > outputStream,boost::process::std_in < inputStream);
+    
+    inputStream << "set terminal png"<< std::endl;
+    inputStream << "unset key"<< std::endl;
+    if(commands){
+      while(!commands->eof())
+    {
+      std::string line;
+      getline(*commands,line);
+      inputStream << line << std::endl;
+    }
+    }
+    inputStream << "p '-' u 1:2 w l"<< std::endl;
+    for(int i=0;i<xn;i++)
+    {
+      inputStream << x[i] << " " << y[i] << std::endl;
+    }
+    inputStream << "e"<< std::endl;
+    inputStream << "q"<< std::endl;
+    myProcess.wait();
+    std::string value;
+    while(!outputStream.eof())
+    {
+      std::string line;
+      getline(outputStream,line);
+      value = value + line + '\n';
+    }
+    return { value };
+  }
+  
+  gnuplotImage GnuplotWidget::plotData(const std::vector<double> &x,const std::vector<std::vector<double>> &y,std::istream* commands)
+  {
+    
+    int xn = x.size();
+    for(int j=0;j<y.size();j++)
+    {
+      int yn = y[j].size();
+      if(xn!=yn){
+	std::cerr << " GnuplotWidget::plotData(x,y["<<j<<"]) := BAD SIZING OF VECTORS " << std::endl;
+	return { "" };
+      }
+    }
+    
+    boost::process::opstream inputStream;
+    boost::process::ipstream outputStream;
+    boost::process::child myProcess("gnuplot",boost::process::std_out > outputStream,boost::process::std_in < inputStream);
+    
+    inputStream << "set terminal png"<< std::endl;
+    inputStream << "unset key"<< std::endl;
+    if(commands)
+    {
+    while(!commands->eof())
+    {
+      std::string line;
+      getline(*commands,line);
+      inputStream << line << std::endl;
+    }
+    }
+    inputStream << "p";
+    for(int j=0;j<y.size();j++)
+    {
+      if(j==0)
+	inputStream << " '-' ";
+      else
+	inputStream << " '' ";
+      inputStream << " u 1:2 w l";
+      if(j<y.size()-1)
+	inputStream << " , ";
+    }
+    inputStream  << std::endl;
+    
+    for(int j=0;j<y.size();j++)
+    {
+      for(int i=0;i<xn;i++)
+      {
+	inputStream << x[i] << " " << y[j][i] << std::endl;
+      }
+      inputStream << "e"<< std::endl;
+    }
+    inputStream << "q"<< std::endl;
+    myProcess.wait();
+    std::string value;
+    while(!outputStream.eof())
+    {
+      std::string line;
+      getline(outputStream,line);
+      value = value + line + '\n';
+    }
+    return { value };
+  }
+  
+  
+}
