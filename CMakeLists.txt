@@ -4,8 +4,7 @@ SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_BUILD_TYPE Release)
 
 FIND_PACKAGE ( Threads REQUIRED )
-link_directories( $ENV{HOME}/Codes/Boost/boost_1_67_0/stage/lib )
-INCLUDE_DIRECTORIES( include $ENV{HOME}/Codes/Boost/boost_1_67_0)
+INCLUDE_DIRECTORIES( include /usr/local)
 
 ADD_COMPILE_OPTIONS(-Wall -Wextra -Wpedantic -ffast-math -O3)
 
