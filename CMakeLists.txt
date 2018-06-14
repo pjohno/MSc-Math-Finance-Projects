@@ -4,9 +4,8 @@ SET(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_BUILD_TYPE Release)
 
 FIND_PACKAGE ( Threads REQUIRED )
-FIND_LIBRARY ( BOOST_SYSTEM_CUSTOM_LIB boost_system_custom REQUIRED ${USER_LOCATION_DIR}/lib)
-#link_directories( ${USER_LOCATION_DIR}/lib )
-INCLUDE_DIRECTORIES( include )
+link_directories( $ENV{HOME}/Codes/Boost/boost_1_67_0/stage/lib )
+INCLUDE_DIRECTORIES( include $ENV{HOME}/Codes/Boost/boost_1_67_0)
 
 ADD_COMPILE_OPTIONS(-Wall -Wextra -Wpedantic -ffast-math -O3)
 
