@@ -4,6 +4,7 @@ MSc_Math_Finance_2018.cpp
 MSc_projects_mVector.cpp
 MSc_projects_gnuplot.cpp
 MSc_projects_pde_solvers.cpp
+MSc_projects_quad.cpp
 )
 
 ADD_LIBRARY(MSc_Math_Finance_2018LIB SHARED
