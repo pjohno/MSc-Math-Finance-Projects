@@ -12,10 +12,12 @@ ${MY_LIBRARY_SRCS}
 )
 
 TARGET_LINK_LIBRARIES( MSc_Math_Finance_2018LIB /usr/local/lib/libboost_system.so pthread)
+#TARGET_LINK_LIBRARIES( MSc_Math_Finance_2018LIB boost_system pthread)
 
 ADD_LIBRARY(MSc_Math_Finance_2018LIB_static STATIC
 ${MY_LIBRARY_SRCS} 
 )
 
 TARGET_LINK_LIBRARIES( MSc_Math_Finance_2018LIB_static /usr/local/lib/libboost_system.so pthread)
+#TARGET_LINK_LIBRARIES( MSc_Math_Finance_2018LIB_static boost_system pthread)
 

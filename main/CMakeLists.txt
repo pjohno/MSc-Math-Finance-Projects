@@ -12,3 +12,6 @@ ADD_EXECUTABLE( MSc_projects_6.out project-6-revenue-management.cpp )
 
 ADD_EXECUTABLE( MSc_projects_7.out project-7-exotic-options.cpp )
  TARGET_LINK_LIBRARIES( MSc_projects_7.out MSc_Math_Finance_2018LIB )
+
+ADD_EXECUTABLE( MSc_projects_8.out project-8-jump-diffusion.cpp )
+ TARGET_LINK_LIBRARIES( MSc_projects_8.out MSc_Math_Finance_2018LIB )

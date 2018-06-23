@@ -10,12 +10,6 @@ double lambdaIntensity(double price,double a,double alpha)
   return a*exp(-alpha*price);
 }
 
-// return the price we are selling at if the current sales intensity is lambda (inverse of the intensity function)
-double priceFunction(double lambda,double a,double alpha)
-{
-  return -1/alpha*log(lambda/a);
-}
-
 int main()
 {
   // Ns is the number of stock units that may be sold
@@ -35,7 +29,6 @@ int main()
   // in code J[n][j] ~~ J_n^j
   vector<vector<double> > Jvalue(Ns+1,vector<double> (K+1)),optimalPvalue(Ns+1,vector<double> (K+1));
   
-  double pStar=1.;
   // assign boundary conditions
   // J(n,T)=0
   for(int n=0;n<=Ns;n++)
@@ -64,7 +57,12 @@ int main()
   {
     for(int n=1;n<=Ns;n++)
     {
-      Jvalue[n][j]=(1.- lambdaIntensity(pStar,a,alpha)*dt) * Jvalue[n][j+1] + lambdaIntensity(pStar,a,alpha)*dt * Jvalue[n-1][j+1] + pStar * lambdaIntensity(pStar,a,alpha) * dt;
+      double pStar = Jvalue[n][j+1] - Jvalue[n-1][j+1] + alpha;
+      double lambdaStar = lambdaIntensity(pStar,a,alpha);
+      Jvalue[n][j]=(1.- lambdaStar*dt) * Jvalue[n][j+1] + 
+	lambdaStar*dt * Jvalue[n-1][j+1] +
+	pStar * lambdaStar * dt;
+      optimalPvalue[n][j] = pStar;
     }
   }
   // output values to screen

@@ -97,6 +97,7 @@ namespace MSC_PROJECTS {
             {
                 double dJdX = ( JtOld[j+1] - JtOld[j-1] ) / 2. / dX;
                 double d2JdX2 = ( JtOld[j+1] - 2.*JtOld[j] + JtOld[j-1] ) / dX / dX;
+		// bound p in between 0 and 5
                 double p = std::min(std::max(0.,(r-mu)*X[j]*dJdX / (sigma*sigma*X[j]*X[j]*d2JdX2)),5.);
                 if(d2JdX2>0)p=5.;
                 pt[j]=p;
