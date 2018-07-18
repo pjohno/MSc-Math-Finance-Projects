@@ -43,10 +43,8 @@ namespace MSC_PROJECTS
         for (uint i = 0; i<x.size(); i++) x[i] = min + i*dx;
     }
     
-    double QUAD::valueOption(double  S0,double r,double sigma,double T,int n,const std::vector<double> &y,const std::vector<double> &payoff_vec)
+    double QUAD::valueOption(double  x0,double r,double sigma,double T,int n,const std::vector<double> &y,const std::vector<double> &payoff_vec)
     {
-        // value of x
-        double x = log(S0);
         
         // variable k
         double k = 2.*r / sigma / sigma - 1.;
@@ -57,11 +55,11 @@ namespace MSC_PROJECTS
         
         for (uint j = 0; j < y.size(); j++)
         {
-            integrand[j] = B( x , y[j] , sigma , k , T ) * payoff_vec[j];
+            integrand[j] = B( x0 , y[j] , sigma , k , T ) * payoff_vec[j];
         }
         
         // in this example we integrate over the entire range of y, it is possible to select a subrange
-        return A(x, r, sigma, k, T )*integrate(0, n, y, integrand);
+        return A(x0, r, sigma, k, T )*integrate(0, n, y, integrand);
         
     }
 }

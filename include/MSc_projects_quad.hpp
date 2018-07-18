@@ -29,7 +29,8 @@ namespace MSC_PROJECTS
         // reset, resize and generate new grid with n+1 nodes, equally spaced on the range [min,max]
         static void resetGrid(int n, double min, double max, std::vector<double> &x);
         
-        static double valueOption(double  S0,double r,double sigma,double T,int n,const std::vector<double> &y,const std::vector<double> &payoff_vec);
+        static double valueOption(double x0, double r, double sigma, double T, int n, const std::vector< double >& y, const std::vector< double >& payoff_vec)
+;
         
     };
     

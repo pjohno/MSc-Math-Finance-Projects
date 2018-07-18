@@ -15,3 +15,12 @@ ADD_EXECUTABLE( MSc_projects_7.out project-7-exotic-options.cpp )
 
 ADD_EXECUTABLE( MSc_projects_8.out project-8-jump-diffusion.cpp )
  TARGET_LINK_LIBRARIES( MSc_projects_8.out MSc_Math_Finance_2018LIB )
+
+ADD_EXECUTABLE( MSc_projects_9.out project-9-free-boundaries.cpp )
+TARGET_LINK_LIBRARIES( MSc_projects_9.out MSc_Math_Finance_2018LIB )
+
+ADD_EXECUTABLE( MSc_projects_11-alt.out project-11-perpetual-bermudan.cpp )
+TARGET_LINK_LIBRARIES( MSc_projects_11-alt.out MSc_Math_Finance_2018LIB )
+
+ADD_EXECUTABLE( MSc_projects_11.out project-11-perpetual-QUAD-complete.cpp )
+TARGET_LINK_LIBRARIES( MSc_projects_11.out MSc_Math_Finance_2018LIB )

@@ -11,6 +11,13 @@ namespace MSC_PROJECTS{
     static const int columnWidth=14;
     cout << "|" << setw(columnWidth)  << t;
   }
+  template<class T>
+  void addColumnEntry(const std::vector<T>& t)
+  {
+    static const int columnWidth=14;
+    for(auto ti : t)
+        cout << "|" << setw(columnWidth)  << ti;
+  }
   void endRow()
   {
     cout << "|" <<endl;

@@ -66,6 +66,7 @@ double  valueOption(double  S0,double r,double sigma,double T,int n,const std::v
     return A(x, r, sigma, k, T )*integrate(0, n, y, integrand);
     
 }
+
 double callOption(double  S,double X,double r,double sigma,double T,int N=500,double xi=7.5)
 {
     // set y grid up at the final step, using strike price as lower limit
@@ -74,6 +75,23 @@ double callOption(double  S,double X,double r,double sigma,double T,int N=500,do
     // assign payoff, since e^y>=X we don't need max function
     for(unsigned int i=0;i<y.size();i++)
         V[i] = exp(y[i])-X;
+    
+    // return the value V(x=log(S),0) = A(x)*\int B(x,y)*V(y,T) dy
+    return valueOption(S,r,sigma,T,N,y,V);
+}
+
+double putOption(double  S,double X,double r,double sigma,double T,int N=500,double xi=7.5)
+{
+    // set y grid up at the final step, using strike price as lower limit
+    std::vector<double> y(N+1),V(N+1);
+    double yMin = log(X*exp(-xi*sigma*sqrt(T)));
+    double yMax = log(X);
+    double dy = (yMax - yMin)/N;
+    for(int i=0;i<=N;i++)
+        y[i] = yMin + i*dy;
+    // assign payoff, since e^y>=X we don't need max function
+    for(unsigned int i=0;i<y.size();i++)
+        V[i] = X-exp(y[i]);
     
     // return the value V(x=log(S),0) = A(x)*\int B(x,y)*V(y,T) dy
     return valueOption(S,r,sigma,T,N,y,V);
@@ -88,7 +106,7 @@ int main()
     int k=2;
     for(int n=10;n<=5000;n*=k)
     {
-        double value = callOption(S,X,r,sigma,T,n);
+        double value = putOption(S,X,r,sigma,T,n);
         double diff = value - valueOld;
         double R = diffOld/diff;
         std::cout <<  n << " | " << value << " | " << R << " | " << log(R)/log(k) << std::endl;

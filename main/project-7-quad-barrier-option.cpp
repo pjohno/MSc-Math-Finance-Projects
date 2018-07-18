@@ -14,7 +14,7 @@ double callOption(double  S,double X,double r,double sigma,double T,int N=500,do
         V[i] = exp(y[i])-X;
     
     // return the value V(x=log(S),0) = A(x)*\int B(x,y)*V(y,T) dy
-    return QUAD::valueOption(S,r,sigma,T,N,y,V);
+    return QUAD::valueOption(log(S),r,sigma,T,N,y,V);
 }
 
 double upAndOutBarrierCallOption(double  S,double X,double r,double sigma,double T,double B,int N)
@@ -35,13 +35,13 @@ double upAndOutBarrierCallOption(double  S,double X,double r,double sigma,double
     
     // get the value V(x_i,T/2) = A(x)*\int B(x,y)*V(y,T) dy
     for(unsigned int i=0;i<x.size();i++)
-        vNew[i] = QUAD::valueOption(exp(x[i]),r,sigma,dT,N,y,vOld);
+        vNew[i] = QUAD::valueOption(x[i],r,sigma,dT,N,y,vOld);
     
     // overwrite values of y and vOld to be 
     y = x;
     vOld = vNew;
     // return the value V(x=log(S),0) = A(x)*\int B(x,y)*V(y,T/2) dy
-    return QUAD::valueOption(S,r,sigma,dT,N,y,vOld);
+    return QUAD::valueOption(log(S),r,sigma,dT,N,y,vOld);
     
 }
 
