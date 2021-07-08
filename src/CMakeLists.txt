@@ -1,6 +1,5 @@
 
 SET(MY_LIBRARY_SRCS  
-MSc_Math_Finance_2018.cpp
 MSc_projects_mVector.cpp
 MSc_projects_pde_solvers.cpp
 MSc_projects_quad.cpp

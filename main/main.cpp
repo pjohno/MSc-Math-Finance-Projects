@@ -1,4 +1,3 @@
-#include "MSc_Math_Finance_2018.hpp"
 #include <iostream>
 #include <fstream>
 #include <cmath>
