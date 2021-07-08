@@ -3,10 +3,6 @@
 
 namespace MSC_PROJECTS
 {
-    // A generic lagrange interpolation function
-    double lagrangeInterpolation(const std::vector<double>& y,const std::vector<double>& x,double x0,unsigned int n=4);
-    
-    std::vector<double> tridag(const std::vector<double>& a,const std::vector<double>& beta,const std::vector<double>& c,std::vector<double>& d);
     
     int calculateExpectedUtility(
         double xMin, // minimum fund value

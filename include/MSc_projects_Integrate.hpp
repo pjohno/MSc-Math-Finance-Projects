@@ -79,7 +79,7 @@ namespace MSC_PROJECTS
             VECTOR k2 = h*f(x+0.5*k1,t+0.5*h); // update x to x_{i+1}
             VECTOR k3 = h*f(x+0.5*k2,t+0.5*h); // update x to x_{i+1}
             VECTOR k4 = h*f(x+k3,t+h); // update x to x_{i+1}
-            x = x + 1./6.*(k1+k4+(2.*(k2+k3))); 
+            x = x + 1./6.*(k1+(k4+(2.*(k2+k3)))); 
         }
         return x; // returns x_n
     }

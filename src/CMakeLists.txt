@@ -1,6 +1,5 @@
 
 SET(MY_LIBRARY_SRCS  
-MSc_projects_mVector.cpp
 MSc_projects_pde_solvers.cpp
 MSc_projects_quad.cpp
 MSc_projects_perpetual_bermudan_put.cpp

@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include "math60082_gnuplot.hpp"
-#include "MSc_projects_mVector.hpp"
+#include "math60082_mVector.hpp"
 #include "MSc_projects_Integrate.hpp"
 using namespace std;
 using namespace MSC_PROJECTS;
@@ -29,7 +29,7 @@ double dT = T/n;
   
   stringstream ss;
   // store the value of the omega and delta at each time step and q value
-  std::vector<MSC_PROJECTS::MVector> omega(n+1,MSC_PROJECTS::MVector(qMax+1)),delta(n+1,MSC_PROJECTS::MVector(qMax+1));
+  std::vector<MVector> omega(n+1,MVector(qMax+1)),delta(n+1,MVector(qMax+1));
  
   // initialise the solution at t=T
   for(int q=0;q<=qMax;q++)
@@ -57,9 +57,9 @@ double dT = T/n;
     //   omega(q,T_{i-1}) = w(q,T_{i-1})
     omega[i] = RK4MethodTemplate(100,i*dT,(i-1)*dT,omega[i+1],
 				 [&]
-				 (const  MSC_PROJECTS::MVector &w,double t)
+				 (const  MVector &w,double t)
 				 {
-				   MSC_PROJECTS::MVector F(qMax+1);
+				   MVector F(qMax+1);
 				   F[0] = 0.;
 				   for(int q=1;q<=qMax;q++)
 				     F[q] = (alpha*q*q - beta*q)*w[q] - eta*w[q-1];

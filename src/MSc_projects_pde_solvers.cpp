@@ -1,59 +1,9 @@
 #include "MSc_projects_pde_solvers.hpp"
+#include "math60082_tridag.hpp"
 #include <cmath>
 using namespace std;
 
 namespace MSC_PROJECTS {
-    
-    
-    // A generic lagrange interpolation function
-    double lagrangeInterpolation(const vector<double>& y,const vector<double>& x,double x0,unsigned int n)
-    {
-        if(x.size()<n)return lagrangeInterpolation(y,x,x0,x.size());
-        if(n==0)throw;
-        int nHalf = n/2;
-        int jStar;
-        double dx=x[1]-x[0];
-        if(n%2==0)
-            jStar = int((x0 - x[0])/dx) -(nHalf-1);
-        else
-            jStar = int((x0 - x[0])/dx+0.5)-(nHalf);
-        jStar=std::max(0,jStar);
-        jStar=std::min(int(x.size()-n),jStar);
-        if(n==1)return y[jStar];
-        double temp = 0.;
-        for(unsigned int i=jStar;i<jStar+n;i++){
-            double  int_temp;
-            int_temp = y[i];
-            for(unsigned int j=jStar;j<jStar+n;j++){
-                if(j==i){continue;}
-                int_temp *= ( x0 - x[j] )/( x[i] - x[j] );
-            }
-            temp += int_temp;
-        }
-        // end of interpolate
-        return temp;
-    }
-    
-    
-    vector<double> tridag(const vector<double>& a,const vector<double>& beta,const vector<double>& c,vector<double>& d)
-    {
-        int n=a.size();
-        vector<double> b(n);
-        // move d to rhs
-        vector<double> rhs(d);
-        // initial first value of b
-        b[0]=beta[0];
-        for(int j=1;j<n;j++)
-        {
-            b[j]=beta[j]-c[j-1]*a[j]/b[j-1];  
-            rhs[j]=rhs[j]-rhs[j-1]*a[j]/b[j-1];
-        }
-        // calculate solution
-        rhs[n-1]=rhs[n-1]/b[n-1];
-        for(int j=n-2;j>=0;j--)
-            rhs[j]=(rhs[j]-c[j]*rhs[j+1])/b[j];
-        return rhs;
-    }
     
     int calculateExpectedUtility(
         double xMin, // minimum fund value
@@ -131,7 +81,8 @@ namespace MSC_PROJECTS {
                 d[jMax] = pow(X[jMax]*exp(aHat*(T-(i+0.5)*dt)),gamma)/gamma;
             }
             // solve the matrix equations, Jt now stores solution at t+dthalf
-            Jt = tridag(a,b,c,d);
+            MATH60082::thomasSolve(a,b,c,d);
+            Jt = d;
         }
         
         return 0;
