@@ -2,23 +2,20 @@
 SET(MY_LIBRARY_SRCS  
 MSc_Math_Finance_2018.cpp
 MSc_projects_mVector.cpp
-MSc_projects_gnuplot.cpp
 MSc_projects_pde_solvers.cpp
 MSc_projects_quad.cpp
 MSc_projects_perpetual_bermudan_put.cpp
 )
 
-ADD_LIBRARY(MSc_Math_Finance_2018LIB SHARED
+ADD_LIBRARY( mscmathfinanceprojects SHARED
 ${MY_LIBRARY_SRCS} 
 )
 
-#TARGET_LINK_LIBRARIES( MSc_Math_Finance_2018LIB /usr/local/lib/libboost_system.so pthread)
-TARGET_LINK_LIBRARIES( MSc_Math_Finance_2018LIB boost_system pthread)
+TARGET_LINK_LIBRARIES( mscmathfinanceprojects math60082 boost_system pthread gsl cblas)
 
-ADD_LIBRARY(MSc_Math_Finance_2018LIB_static STATIC
+ADD_LIBRARY( mscmathfinanceprojects_static STATIC
 ${MY_LIBRARY_SRCS} 
 )
 
-#TARGET_LINK_LIBRARIES( MSc_Math_Finance_2018LIB_static /usr/local/lib/libboost_system.so pthread)
-TARGET_LINK_LIBRARIES( MSc_Math_Finance_2018LIB_static boost_system pthread)
+TARGET_LINK_LIBRARIES( mscmathfinanceprojects_static math60082_static boost_system pthread gsl cblas)
 

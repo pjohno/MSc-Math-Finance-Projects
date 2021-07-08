@@ -4,7 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
-#include "MSc_projects_pde_solvers.hpp"
+#include <MSc_projects_pde_solvers.hpp>
 using namespace std;
 using namespace MSC_PROJECTS;
 

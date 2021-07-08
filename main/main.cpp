@@ -1,15 +1,16 @@
 #include "MSc_Math_Finance_2018.hpp"
-#include "MSc_projects_gnuplot.hpp"
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include "math60082_gnuplot.hpp"
 #include "MSc_projects_mVector.hpp"
 #include "MSc_projects_Integrate.hpp"
 using namespace std;
 using namespace MSC_PROJECTS;
+using namespace MATH60082;
 
 int main()
 {
