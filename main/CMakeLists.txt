@@ -1,5 +1,3 @@
-ADD_EXECUTABLE( MSc_Math_Finance_2018.out main )
- TARGET_LINK_LIBRARIES( MSc_Math_Finance_2018.out mscmathfinanceprojects )
 
 ADD_EXECUTABLE( MSc_projects_4.out project-4-optimal-liquidation-all-in-one.cpp )
  TARGET_LINK_LIBRARIES( MSc_projects_4.out mscmathfinanceprojects)

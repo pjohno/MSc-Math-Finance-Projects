@@ -9,7 +9,7 @@
 #include <vector>
 #include <algorithm>
 
-#include <MSc_projects_mVector.hpp>
+#include <math60082_mVector.hpp>
 #include <MSc_projects_Integrate.hpp>
 
 #include "msc_gnuplot_image.hpp"
