@@ -1,4 +1,7 @@
 
+ADD_EXECUTABLE( MSc_projects_perturbationMethods.out project-perturbationMethods.cpp )
+ TARGET_LINK_LIBRARIES( MSc_projects_perturbationMethods.out mscmathfinanceprojects)
+
 ADD_EXECUTABLE( MSc_projects_4.out project-4-optimal-liquidation-all-in-one.cpp )
  TARGET_LINK_LIBRARIES( MSc_projects_4.out mscmathfinanceprojects)
 
