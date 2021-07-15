@@ -264,7 +264,7 @@ int main()
     }
     
     // create a table with the truncation errors
-    cout << " Output written to file \"test.csv\". Truncation errors of the series as follows::\n C_i \t| Error \n";
+    cout << " Output written to file \"test.csv\". Truncation errors of the series as follows::\n P_i \t| Error \n";
     for(int ni=0;ni<=n;ni++)
     {
         cout << ni << " \t| " << errors[ni] << "\n";
