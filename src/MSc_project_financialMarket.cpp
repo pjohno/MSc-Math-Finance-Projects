@@ -463,8 +463,6 @@ namespace MSC_PROJECTS
         for(auto a : limitOrderBookAsks)output << a << "\n";
         output << "#######\n# MARKET AGENTS\n######\n";
         for(auto A : marketAgents)output << A << "\n";
-
-        
     }
 
 }
