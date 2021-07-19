@@ -1,3 +1,5 @@
+ADD_EXECUTABLE( MSc_projects_financialMarkets.out project-financialMarkets.cpp )
+ TARGET_LINK_LIBRARIES( MSc_projects_financialMarkets.out mscmathfinanceprojects)
 
 ADD_EXECUTABLE( MSc_projects_perturbationMethods.out project-perturbationMethods.cpp )
  TARGET_LINK_LIBRARIES( MSc_projects_perturbationMethods.out mscmathfinanceprojects)
