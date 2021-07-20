@@ -11,7 +11,7 @@
 #include <functional>
 
 // project specific stuff
-#include <doxygen_table.hpp>
+#include <math60082_markupTable.hpp>
 
 // for plotting
 #include "msc_gnuplot_image.hpp"
