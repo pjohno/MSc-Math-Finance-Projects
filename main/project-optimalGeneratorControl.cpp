@@ -112,6 +112,7 @@ double lagrangeInterpolation(const std::vector<double>& y,const std::vector<doub
     return temp;
 }
 
+// construct one of these for each state in the problem, so 
 struct GeneratorState
 {
     // grid for the state variable
@@ -119,18 +120,25 @@ struct GeneratorState
     
     // value function on grid points
     std::vector<double> v;
-    // value function on grid points
+    
+    // store the optimal control at each time and grid point
     std::vector<std::vector<double>> control;
     
-    // value function operator
+    // run linear interpolation on value
     double operator()(double x0){return lagrangeInterpolation(v,x,x0,2);}
     
     // dynamics of the state
     double f(double xt,double c) const {
         return std::max(cMin(xt),std::min(c,cMax(xt)));
     } 
+    
+    // cMin controls the minimum rate of f given x
     std::function<double(double)> cMin;
+
+    // cMax controls the maximum rate of f given x
     std::function<double(double)> cMax;
+    
+    // eta is way that we jump between states
     std::function<int(double)> eta;
     
     // cost function
@@ -140,21 +148,31 @@ struct GeneratorState
 
 struct Generator
 {
-    
+    // a function to assign the electricity price as a function of time
     std::function<double(double)> EP;
     
+    // the tolerance for the problem
     double tol;
     
+    // store the different generator states in the problem 
+    // inside a vector
     std::vector<GeneratorState> state;
+    
+    // store the time grid in a vector
     std::vector<double>  t;
     
+    // solve from T to 0 using dynamic programming
     int solve();
     
+    // output the path of the variable
     int outputPath(double x0,int u0,std::ostream& output=std::cout);
     
-    template <class T>
-    int setupState(int state,int n,int m,double tol,const T &params);
-    
+    // this gives access to the "state" without writing ".state"
+    // So
+    // Generator G;
+    // G.state[U].x[j] = ...
+    // is equivalent to
+    // G[U].x[j] = ...
     GeneratorState& operator[](unsigned int U){return state[U];}
     
 };

@@ -10,161 +10,113 @@ namespace MSC_PROJECTS
         return std::max(cMin(xt),std::min(c,cMax(xt)));
     } 
     
-    template <>
-    int Generator::setupState<GeneratorDefaultOff>(int state,int n,int m,double tol,const GeneratorDefaultOff &p)
-    {
-        // state 0 has only couple of points
-        G[state].x =  MATH60082::MVector(n+1,0.);
-        for(int i=0;i<=n;i++)
-        {G[state].x[i] = p.xMin + i*(p.xMax-p.xMin)/n;}// initialise value function
-        G[state].v =  MATH60082::MVector(n+1,0.);
+    int Generator::defaultSetup(int n,int m,double T,double tol_){
+        
+        state.clear();
+        // create a 4 state model
+        state.resize(4);
+        tol=tol_;
+        
+        // state 0 represents "off" state 
+        // x goes from -1 to 0
+        // -1 < c < 1
+        // no cost
+        state[0].x.resize(n+1,0.);
+        for(int i=0;i<=n;i++)state[0].x[i] = -1. + (double)i/(double)n;// initialise value function
+        state[0].v.resize(n+1,0.);
         // initialise value function
-        G[state].control = MATH60082::MMatrix(n+1,m+1,0.);
+        state[0].control.resize(n+1,std::vector<double>(m+1,0.));
         // define dynamics
-        G[state].cMin = [p](double){
-            // nowhere to go, just return 0
-            return p.cMin;
-        };
+        state[0].cMin = [](double){return -1;};
         // define dynamics
-        G[state].cMax = [p](double){
-            // nowhere to go, just return 0
-            return p.cMax;
-        };
-        G[state].eta = [tol,p](double xtplus){
+        state[0].cMax = [](double){return 1.;};
+        // start warming up
+        state[0].eta = [&](double xtplus){
             // if xt would be positive start warming up
             if(xtplus>-tol)return 1;
             else return 0;
         };
+        // zero cost function
+        state[0].Gamma = [](double xt,double pt,double c){return 0.;};
+        
+        // state 1 represents warming up
+        // 0 <= x <= 1 combined with c=1 means that
+        // it takes 1 unit of time to move through
+        state[1].x.resize(n+1);
+        for(int i=0;i<=n;i++)state[1].x[i] = (double)i/(double)n;
+        // initialise value function
+        state[1].v.resize(n+1,0.);
+        // initialise value function
+        state[1].control.resize(n+1,std::vector<double>(m+1,0.));
+        // define dynamics
+        state[1].cMin = [](double){return 1.;};
+        // define dynamics
+        state[1].cMax = [](double){return 1.;};
+        state[1].eta = [&](double xtplus){
+            // switch to "on" state 2 if reach x=1
+            if(xtplus>1.-tol)return 2;
+            else return 1;
+        };
         // cost function
-        G[state].Gamma = [p](double xt,double pt,double c){
-            // if turned off, no need to include costs
-            return p.cost;
+        state[1].Gamma = [](double xt,double pt,double c){
+            // if warming up, some fixed costs incurred
+            return -5;
         };
-        return 0;
-    }
-  
-    template <>
-    int Generator::setupState<GeneratorDefaultSyncing>(int state,int n,int m,double tol,const GeneratorDefaultSyncing &p)
-    {
-        // state 1 has only one point
-        G[state].x =  MATH60082::MVector(n+1);
-        for(int i=0;i<=n;i++)
-        {G[state].x[i] = p.xMin + i*(p.xMax-p.xMin)/n;}
+        
+        // state 2 represents warming up
+        // 1 <= x <= 2 combined with c_max=1 means that
+        // it takes 1 unit of time to move through from 
+        // maximum power to minimum. You could adjust cMin/cMax
+        // to include ramp rates as they can be function of "x"
+        state[2].x.resize(n+1);
+        for(int i=0;i<=n;i++)state[2].x[i] = 1.+(double)i/(double)n;
         // initialise value function
-        G[state].v =  MATH60082::MVector(n+1,0.);
+        state[2].v.resize(n+1,0.);
         // initialise value function
-        G[state].control = MATH60082::MMatrix(n+1,m+1,0.);
+        state[2].control.resize(n+1,std::vector<double>(m+1,0.));
         // define dynamics
-        G[state].cMin = [p](double){
-            // rate of 1
-            return p.cMin;
-        };
+        state[2].cMin = [](double xt){return -1.;};
         // define dynamics
-        G[state].cMax = [p](double){
-            // rate of 1
-            return p.cMax;
-        };
-        G[state].eta = [tol,p](double xtplus){
-            // while xt 
-            if(xtplus<p.xMax-tol)return 1;
+        state[2].cMax = [](double xt){return 1.;};
+        state[2].eta = [&](double xtplus){
+            // switch to "warming down" state 3 if reach x=1
+            if(xtplus<1.+tol)return 3;
             else return 2;
         };
         // cost function
-        G[state].Gamma = [p](double xt,double pt,double c){
-            // if warming up, some fixed costs incurred
-            return p.cost;
+        state[2].Gamma = [](double xt,double pt,double c){
+            // 
+            return (xt-1.)*pt - 30.;
         };
-        return 0;
-    }
-   
-    template <>
-    int Generator::setupState<GeneratorDefaultOn>(int state,int n,int m,double tol,const GeneratorDefaultOn &p)
-    {
-        // state 3 has only one point
-        G[state].x =  MATH60082::MVector(n+1);
-        for(int i=0;i<=n;i++)
-        {G[state].x[i] = p.xMin + i*(p.xMax-p.xMin)/n;}
-// initialise value function
-        G[state].v =  MATH60082::MVector(n+1,0.);
+        
+        // state 1 represents warming up
+        // 0 <= x <= 1 combined with c=1 means that
+        // it takes 1 unit of time to move through
+        state[3].x.resize(n+1);
+        for(int i=0;i<=n;i++)state[3].x[i] = (double)i/(double)n;
         // initialise value function
-        G[state].control = MATH60082::MMatrix(n+1,m+1,0.);
+        state[3].v.resize(n+1,0.);
+        // initialise value function
+        state[3].control.resize(n+1,std::vector<double>(m+1,0.));
         // define dynamics
-        G[state].cMin = [p](double){
-            // rate of 1
-            return p.cMin;
-        };
+        state[3].cMin = [](double){return -1.;};
         // define dynamics
-        G[state].cMax = [p](double){
-            // rate of 1
-            return p.cMax;
-        };
-        G[state].eta = [tol,p](double xtplus){
-            // while xt 
-            if(xtplus>p.xMin+tol)return 2;
+        state[3].cMax = [](double){return -1.;};
+        state[3].eta = [&](double xtplus){
+            // switch to "off" state 0 if reach x=0
+            if(xtplus<tol)return 0;
             else return 3;
         };
-        // cost function is function of xt and pt
-        G[state].Gamma = p.cost;
-        
-        return 0;
-    }
-    
-    template <>
-    int Generator::setupState<GeneratorDefaultDeSyncing>(int state,int n,int m,double tol,const GeneratorDefaultDeSyncing &p)
-    {
-        // state 3 has only one point
-        G[state].x =  MATH60082::MVector(n+1);
-        for(int i=0;i<=n;i++)
-        {G[state].x[i] = p.xMin + i*(p.xMax-p.xMin)/n;}
-        // initialise value function
-        G[state].v =  MATH60082::MVector(n+1,0.);
-        // initialise value function
-        G[state].control = MATH60082::MMatrix(n+1,m+1,0.);
-        // define dynamics
-        G[state].cMin = [p](double){
-            // rate of 1
-            return p.cMin;
-        };
-        G[state].cMax = [p](double){
-            // rate of 1
-            return p.cMax;
-        };
-        G[state].eta = [tol,p](double xtplus){
-            // while xt 
-            if(xtplus>p.xMin+tol)return 3;
-            else return 0;
-        };
         // cost function
-        G[state].Gamma = [p](double xt,double pt,double c){
-            // fixed cost
-            return p.cost;
+        state[3].Gamma = [](double xt,double pt,double c){
+            // if warming down, some fixed costs incurred
+            return -5;
         };
         
-        return 0;
-    }
-    
-    
-    int Generator::defaultSetup(int n,int m,double T,double tol_){
-        
-        G.clear();
-        G.resize(4);
-        tol=tol_;
-        
-        setupState<GeneratorDefaultOff>(0,n,m,tol,{-1,0.,-1,1,0.});
-        
-        setupState<GeneratorDefaultSyncing>(1,n,m,tol,{0.,1.,0.,1.,-5.});
-        
-        setupState<GeneratorDefaultOn>(2,n,m,tol,{1.,2.,-1.,1.,[](double xt,double pt,double c){
-            // 
-            return (xt-1)*pt - 30.;
-        }});
-        
-        setupState<GeneratorDefaultDeSyncing>(3,n,m,tol,{0.,1.,-1.,0.,-5.});
-        
-        t =  MATH60082::MVector(m+1);
-        for(int i=0;i<=m;i++)
+        t.resize(m+1);
+        for(int k=0;k<=m;k++)
         {
-            t[i] = i*T/m;
+            t[k] = k*T/m;
         }
         
         return 0;
@@ -175,11 +127,11 @@ namespace MSC_PROJECTS
         using MATH60082::goldenSearch;
         
         // assign terminal conditions
-        for(unsigned int i=0;i<G.size();i++)
+        for(unsigned int U=0;U<state.size();U++)
         {
-            for(unsigned int j=0;j<G[i].v.size();j++)
+            for(unsigned int j=0;j<state[U].v.size();j++)
             {
-                G[i].v[j]=0.;
+                state[U].v[j]=0.;
             }
             
         }
@@ -190,47 +142,47 @@ namespace MSC_PROJECTS
             //             std::cout << "#####\n## Solve at time "<<t[k]<<"\n#####\n"<< std::endl;
             double dt = t[k+1]-t[k];
             
-            std::vector<GeneratorState> Gold=G;
+            std::vector<GeneratorState> Gold=state;
             
-            for(unsigned int U=0;U<G.size();U++)
+            for(unsigned int U=0;U<state.size();U++)
             {
-                for(unsigned int j=0;j<G[U].x.size();j++)
+                for(unsigned int j=0;j<state[U].x.size();j++)
                 {
-                    double cMinStar=G[U].cMin(G[U].x[j]),cMaxStar=G[U].cMax(G[U].x[j]);
+                    double cMinStar=state[U].cMin(state[U].x[j]),cMaxStar=state[U].cMax(state[U].x[j]);
                     auto objective = [&](double c){// calculate position of the characteristic using
-                        double xHalfStar = G[U].x[j] + 0.5*G[U].f(G[U].x[j],c)*dt;
-                        double xStar = G[U].x[j] + G[U].f(xHalfStar,c)*dt;
-                        int uStar = G[U].eta(xStar);
+                        double xHalfStar = state[U].x[j] + 0.5*state[U].f(state[U].x[j],c)*dt;
+                        double xStar = state[U].x[j] + state[U].f(xHalfStar,c)*dt;
+                        int uStar = state[U].eta(xStar);
                         
                         double temp=0.;
-                        if( xStar < ( G[uStar].x.front() - tol ) )
-                            temp-=fabs(xStar-G[uStar].x.front())/tol;
-                        if( xStar > ( G[uStar].x.back() + tol ) )
-                            temp-=fabs(xStar-G[uStar].x.back())/tol;
+                        if( xStar < ( state[uStar].x.front() - tol ) )
+                            temp-=fabs(xStar-state[uStar].x.front())/tol;
+                        if( xStar > ( state[uStar].x.back() + tol ) )
+                            temp-=fabs(xStar-state[uStar].x.back())/tol;
                         
                         // solving DV/Dt = g(x,t,c)
                         // so the simple explicit scheme is given by
                         // ( v(xStar,t+dt) - v(x,t) )/dt + g = 0
                         temp += Gold[uStar](xStar);
-                        temp += G[U].Gamma(xHalfStar,EP(t[k]+0.5*dt),c)*dt;
+                        temp += state[U].Gamma(xHalfStar,electricityPrice(t[k]+0.5*dt),c)*dt;
                         return -temp;
                     };
                     std::pair<double,double> root = goldenSearch(objective,cMinStar,cMaxStar,tol);
-                    G[U].v[j] = -root.second;
-                    G[U].control[j][k]=root.first;
+                    state[U].v[j] = -root.second;
+                    state[U].control[j][k]=root.first;
                 }
             }
             
             if(k==0)
             {
                 MATH60082::tableRow( "k" , "U_t" , "x_t" ,"v_t" , "c_t");
-                MATH60082::emptyTableRow( 6 );
-                for(unsigned int U=0;U<G.size();U++)
+                MATH60082::emptyTableRow( 5 );
+                for(unsigned int U=0;U<state.size();U++)
                 {
-                    int m=G[U].v.size()-1;
-                    for(unsigned int j=0;j<G[U].v.size();j+=std::max(m,1))
+                    int m=state[U].v.size()-1;
+                    for(unsigned int j=0;j<state[U].v.size();j+=std::max(m,1))
                     {
-                        MATH60082::tableRow( k ,  U , G[U].x[j] , G[U].v[j] , G[U].control[j][k] );
+                        MATH60082::tableRow( k ,  U , state[U].x[j] , state[U].v[j] , state[U].control[j][k] );
                     }
                 }
             }
@@ -244,39 +196,39 @@ namespace MSC_PROJECTS
         double ut=u0;
         double vt=0.;
         if(toMarkup){
-        MATH60082::tableRow( "t_k" , "U_t" , "x_t" ,"v_t" , "c_t");
-        MATH60082::emptyTableRow( 5 );
-        MATH60082::tableRow( t[0] , ut , xt ,vt , 0.);
+        MATH60082::tableRow( "t_k" , "U_t" , "x_t" ,"v_t" , "c_t", "p_t");
+        MATH60082::emptyTableRow( 6 );
+        MATH60082::tableRow( t[0] , ut , xt ,vt , 0. , electricityPrice(t[0]));
         }
         for(unsigned int k=0;k<t.size()-1;k++)
         {
             double dt=t[k+1]-t[k];
             // get control from nearest integer
             double dx;
-            if(G[ut].x.size()>1)
-                dx=G[ut].x[1]-G[ut].x[0];
+            if(state[ut].x.size()>1)
+                dx=state[ut].x[1]-state[ut].x[0];
             else
                 dx=1.;
-            int jStar = int((xt - G[ut].x[0])/dx);
+            int jStar = int((xt - state[ut].x[0])/dx);
             
-            jStar = std::min((unsigned int)(jStar),G[ut].x.size()-1);
-            int jStarPlus = std::min((unsigned int)(jStar+1),G[ut].x.size()-1);
-            double ct = G[ut].control[jStar][k];
+            jStar = std::min((unsigned long)(jStar),state[ut].x.size()-1);
+            int jStarPlus = std::min((unsigned long)(jStar+1),state[ut].x.size()-1);
+            double ct = state[ut].control[jStar][k];
             
             if(jStar!=jStarPlus){
-                ct+=(xt-G[ut].x[jStar])*(G[ut].control[jStarPlus][k]-ct)/dx;
+                ct+=(xt-state[ut].x[jStar])*(state[ut].control[jStarPlus][k]-ct)/dx;
             }
             
-            double xHalfStar = xt + 0.5*G[ut].f(xt,ct)*dt;
-            vt = vt + G[ut].Gamma(xHalfStar,EP(t[k]+0.5*dt),ct)*dt;
-            xt = xt + G[ut].f(xHalfStar,ct)*dt;        
-            ut = G[ut].eta(xt);
+            double xHalfStar = xt + 0.5*state[ut].f(xt,ct)*dt;
+            vt = vt + state[ut].Gamma(xHalfStar,electricityPrice(t[k]+0.5*dt),ct)*dt;
+            xt = xt + state[ut].f(xHalfStar,ct)*dt;        
+            ut = state[ut].eta(xt);
             
-            xt = std::max(G[ut].x.front(),std::min(xt,G[ut].x.back()));
+            xt = std::max(state[ut].x.front(),std::min(xt,state[ut].x.back()));
             if(toMarkup)
-                MATH60082::tableRow( t[k+1] , ut , xt ,vt , ct);
+                MATH60082::tableRow( t[k+1] , ut , xt ,vt , ct, electricityPrice(t[0]));
             else
-                output << t[k+1] <<" "<< ut <<" "<< xt << " "<< vt << " "<< ct << endl;
+                output << t[k+1] <<" "<< ut <<" "<< xt << " "<< vt << " "<< ct << " " << electricityPrice(t[k+1])<< endl;
         }
         return 0;
     }
