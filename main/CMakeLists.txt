@@ -1,3 +1,6 @@
+ADD_EXECUTABLE( MSc_projects_optimalGenerator.out project-optimalGeneratorControl.cpp )
+ TARGET_LINK_LIBRARIES( MSc_projects_optimalGenerator.out mscmathfinanceprojects)
+
 ADD_EXECUTABLE( MSc_projects_financialMarkets.out project-financialMarkets.cpp )
  TARGET_LINK_LIBRARIES( MSc_projects_financialMarkets.out mscmathfinanceprojects)
 

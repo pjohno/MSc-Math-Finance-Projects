@@ -11,18 +11,17 @@
 
 namespace MSC_PROJECTS
 {
+    
+    
     struct GeneratorState
     {
-        typedef MATH60082::MVector Vector;
-        typedef MATH60082::MMatrix Matrix;
-        
         // grid for the state variable
-        Vector x;
+        MATH60082::MVector x;
         
         // value function on grid points
-        Vector v;
+        MATH60082::MVector v;
         // value function on grid points
-        Matrix control;
+        MATH60082::MMatrix control;
         
         // value function operator
         double operator()(double x0){return MATH60082::lagrangeInterpolation(v.returnArray(),x.returnArray(),x0,v.size(),2);}
@@ -73,25 +72,23 @@ namespace MSC_PROJECTS
     struct Generator
     {
         
-        typedef MATH60082::MVector Vector;
-        typedef MATH60082::MMatrix Matrix;
-        typedef std::vector<int> CV;
-        
         std::function<double(double)> EP;
         
         double tol;
         
-        Generator(int n,int m,double T,double tol);
+        int defaultSetup(int n,int m,double T,double tol);
         
         std::vector<GeneratorState> G;
-        Vector t;
+        MATH60082::MVector t;
         
         int solve();
         
-        int outputPath(double x0,int u0);
+        int outputPath(double x0,int u0,std::ostream& output=std::cout,bool toMarkup=true);
         
         template <class T>
         int setupState(int state,int n,int m,double tol,const T &params);
+        
+        GeneratorState& operator[](unsigned int U){return G[U];}
         
     };
     
