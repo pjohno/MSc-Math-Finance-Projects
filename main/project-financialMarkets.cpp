@@ -113,8 +113,14 @@ struct Market
     // store the current market price
     double marketPrice;
     
-    // omega is used to determine the rate at which new links can be made
+    // store the current "guru"
+    int guru;
+    
+    // omega is used to determine how much we follow our outgoingLink agent's expectation
     double omega;
+    
+    // lambda is probability we switch to the "guru" or a random agent
+    double lambda;
     
     // random number generator
     std::mt19937_64 rng;
@@ -162,7 +168,7 @@ struct Market
     int deleteOrdersMarket(int s); 
     
     // run a simulation with 
-    void runSimulation(int totalPeriods, int totalIntraPeriods,double sigma,std::ostream &output=std::cout);
+    void runSimulation(int totalPeriods, int totalIntraPeriods,int tau,double sigma,double A,std::ostream &output=std::cout);
     
     // print full market information
     void printFullMarketData(std::ostream &output=std::cout) const;
@@ -189,8 +195,10 @@ int main()
 {
     std::ofstream results("results.csv");
     Market Mfull(10,100,100000);
+    Mfull.omega=1;
+    Mfull.lambda=0;
     Mfull.marketPrice=1000;
-    Mfull.runSimulation(10,20,0.05,results);
+    Mfull.runSimulation(10,20,1,0.05,1.,results);
     Mfull.printFullMarketData();
 }
 
@@ -284,9 +292,11 @@ int main()
         return output;
     }
     
-    void Market::runSimulation(int totalPeriods, int totalIntraPeriods,double sigma,std::ostream &output)
+    void Market::runSimulation(int totalPeriods, int totalIntraPeriods, int tau,double sigma,double A,std::ostream &output)
     {
-        output << "#period  , #marketPrice" << "\n";          
+        // reset the guru
+        guru=0;
+        output << "#period  , #marketPrice  , #guru  , #links" << "\n";          
         // run a bunch of 
         for(int period=1;period<=totalPeriods;period++)
         {
@@ -299,45 +309,70 @@ int main()
             }
             
             // create links to another agent
-            for(auto& A : marketAgents)
+            for(auto& agent : marketAgents)
             {
                 // randomly select an agent
-                std::uniform_int_distribution<> U(0,size()-1);
-                int possibleOutgoingLink = U(rng);
-                if(possibleOutgoingLink!=A.AgentIndex)
+                std::uniform_int_distribution<> randomAgent(0,size()-1);
+                int possibleOutgoingLink = randomAgent(rng);
+                
+                // change outgoing link to guru with probability "lambda"
+                std::uniform_real_distribution<> probSelectGuru(0.,1.);
+                if( probSelectGuru(rng) < lambda )
+                    possibleOutgoingLink = guru;
+                
+                // update links
+                if(possibleOutgoingLink!=agent.AgentIndex)
                 {
                     // get the agent we used to follow
-                    Agent& oldFollowing = marketAgents[A.outgoingLink];
+                    Agent& oldFollowing = marketAgents[agent.outgoingLink];
                     // delete me from their incoming links
-                    oldFollowing.incomingLinks.erase(A.AgentIndex);
+                    oldFollowing.incomingLinks.erase(agent.AgentIndex);
                     // now update my link
-                    A.outgoingLink = possibleOutgoingLink;
+                    agent.outgoingLink = possibleOutgoingLink;
                     // get the agent we are now following
                     Agent& newFollowing = marketAgents[possibleOutgoingLink];
                     // add me to their incoming links
-                    newFollowing.incomingLinks.insert(A.AgentIndex);
+                    newFollowing.incomingLinks.insert(agent.AgentIndex);
                 }
             }
             
-            
             // update agent expectations
-            for(auto& A : marketAgents)
+            for(auto& agent : marketAgents)
             {
-                std::normal_distribution<double> eps(0.,sigma);
-                A.r = eps(rng);
+                std::uniform_real_distribution<> sigma0(0.,sigma);
+                double percentageLinks = (double)(agent.incomingLinks.size())/(double)(size());
+                double networkSigma = sigma0(rng)*(A + percentageLinks*(1.-omega));
+                std::normal_distribution<double> eps(0.,networkSigma);
+                agent.r = eps(rng);
             }
             
-            for(int tau = 0;tau<=totalIntraPeriods;tau++)
+            for(int intraPeriod = 0;intraPeriod<=totalIntraPeriods;intraPeriod++)
             {
                 // randomly select an agent
                 std::uniform_int_distribution<> U(0,size()-1);
                 int randomlySelectedAgent = U(rng);
-                Order o = strategy(randomlySelectedAgent,period,tau);
+                Order o = strategy(randomlySelectedAgent,period,intraPeriod);
                 submitOrder(o); 
             }
+
+            // find the guru as the agent with the most incoming links
+            guru=0;
+            unsigned long maxLinks=0;
+            for(auto& agent : marketAgents)
+            {
+                if( agent.incomingLinks.size() > maxLinks )
+                {
+                    guru = agent.AgentIndex;
+                    maxLinks=agent.incomingLinks.size();
+                }
+            }
             
-            output << period << " , " << marketPrice << "\n";          
-            deleteOrdersMarket(period-2);
+            // COULD ADD SOMTHING HERE TO UPDATE "LAMBDA"
+
+            // now delete orders
+            deleteOrdersMarket(period-tau);
+
+            output << period << " , " << marketPrice << " , " << guru << " , " << maxLinks << "\n";          
             
         }
         output << std::endl;          
@@ -352,8 +387,7 @@ int main()
         // find agent we might follow 
         Agent& following = marketAgents[trader.outgoingLink];
         // calculate price, using trader's "r" and following agent's "r"
-        // UPDATE THIS LINE
-        double pt=marketPrice*exp(trader.r);
+        double pt=marketPrice*exp(omega*trader.r+(1-omega)*following.r);
         
         
         // set time stamp 
@@ -692,10 +726,18 @@ int main()
         return -1;
     }
     
+    double Agent::wealth(double p) const 
+    {
+        return cash + delta * p;
+    }
+    
+    
     void Market::printFullMarketData(std::ostream& output) const
     {
         output << "###############\n# MARKET DATA\n###############\n";
         output << " Market Price " << marketPrice << "\n";
+        const Agent& guruAgent = marketAgents[guru];
+        output << " Guru " << guruAgent.AgentIndex << " |  Wealth " << guruAgent.wealth(marketPrice) << " | Links " << guruAgent.incomingLinks.size() << "\n";
         output << "#######\n# MARKET BIDS\n######\n";
         for(auto b : limitOrderBookBids)output << b << "\n";
         output << "#######\n# MARKET ASKS\n######\n";

@@ -114,12 +114,18 @@ namespace MSC_PROJECTS
         // store the current market price
         double marketPrice;
         
-        // omega is used to determine the rate at which new links can be made
+        // store the current "guru"
+        int guru;
+        
+        // omega is used to determine how much we follow our outgoingLink agent's expectation
         double omega;
+        
+        // lambda is probability we switch to the "guru" or a random agent
+        double lambda;
         
         // random number generator
         std::mt19937_64 rng;
-   
+        
         // store a vector of agents
         std::vector<Agent> marketAgents;
         
@@ -163,7 +169,7 @@ namespace MSC_PROJECTS
         int deleteOrdersMarket(int s); 
         
         // run a simulation with 
-        void runSimulation(int totalPeriods, int totalIntraPeriods,double sigma,std::ostream &output=std::cout);
+        void runSimulation(int totalPeriods, int totalIntraPeriods,int tau,double sigma,double A,double sigmaLambda,std::ostream &output=std::cout);
         
         // print full market information
         void printFullMarketData(std::ostream &output=std::cout) const;

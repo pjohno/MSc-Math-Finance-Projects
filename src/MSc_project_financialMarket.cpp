@@ -82,9 +82,11 @@ namespace MSC_PROJECTS
         return output;
     }
     
-    void Market::runSimulation(int totalPeriods, int totalIntraPeriods,double sigma,std::ostream &output)
+    void Market::runSimulation(int totalPeriods, int totalIntraPeriods, int tau,double sigma,double A,double sigmaLambda,std::ostream &output)
     {
-        output << "#period  , #marketPrice" << "\n";          
+        // reset the guru at the start of the simulation
+        guru=0;
+        output << "#period  , #marketPrice  , #guru  , #links, #lambda" << "\n";          
         // run a bunch of 
         for(int period=1;period<=totalPeriods;period++)
         {
@@ -96,36 +98,91 @@ namespace MSC_PROJECTS
                 marketPrice = ( bestAskPrice + bestBidPrice ) / 2.;
             }
             
-            // update agent expectations
-            for(auto& A : marketAgents)
+            // create links to another agent
+            for(auto& agent : marketAgents)
             {
-                std::normal_distribution<double> eps(0.,sigma);
-                A.r = eps(rng);
+                // randomly select an agent
+                std::uniform_int_distribution<> randomAgent(0,size()-1);
+                int possibleOutgoingLink = randomAgent(rng);
+                
+                // change outgoing link to guru with probability "lambda"
+                std::uniform_real_distribution<> probSelectGuru(0.,1.);
+                if( probSelectGuru(rng) < lambda )
+                    possibleOutgoingLink = guru;
+                
+                // update links
+                if(possibleOutgoingLink!=agent.AgentIndex)
+                {
+                    // get the agent we used to follow
+                    Agent& oldFollowing = marketAgents[agent.outgoingLink];
+                    // delete me from their incoming links
+                    oldFollowing.incomingLinks.erase(agent.AgentIndex);
+                    // now update my link
+                    agent.outgoingLink = possibleOutgoingLink;
+                    // get the agent we are now following
+                    Agent& newFollowing = marketAgents[possibleOutgoingLink];
+                    // add me to their incoming links
+                    newFollowing.incomingLinks.insert(agent.AgentIndex);
+                }
             }
             
-            for(int tau = 0;tau<=totalIntraPeriods;tau++)
+            // update agent expectations
+            for(auto& agent : marketAgents)
+            {
+                std::uniform_real_distribution<> sigma0(0.,sigma);
+                double percentageLinks = (double)(agent.incomingLinks.size())/(double)(size());
+                double networkSigma = sigma0(rng)*(A + percentageLinks*(1.-omega));
+                std::normal_distribution<double> eps(0.,networkSigma);
+                agent.r = eps(rng);
+            }
+            
+            for(int intraPeriod = 0;intraPeriod<=totalIntraPeriods;intraPeriod++)
             {
                 // randomly select an agent
                 std::uniform_int_distribution<> U(0,size()-1);
                 int randomlySelectedAgent = U(rng);
-                Order o = strategy(randomlySelectedAgent,period,tau);
+                Order o = strategy(randomlySelectedAgent,period,intraPeriod);
                 submitOrder(o); 
             }
+
+            // find the guru as the agent with the most incoming links
+            guru=0;
+            unsigned long maxLinks=0;
+            for(auto& agent : marketAgents)
+            {
+                if( agent.incomingLinks.size() > maxLinks )
+                {
+                    guru = agent.AgentIndex;
+                    maxLinks=agent.incomingLinks.size();
+                }
+            }
             
-            output << period << " , " << marketPrice << "\n";          
-            deleteOrdersMarket(period-2);
+            // model dlambda / lambda = dW a log normal SDE, bounded by 1 so that lambda <=1
+            std::normal_distribution<double> dW(0.,sigmaLambda);
+            double phi = dW(rng);
+            // if lambda e^phi>1 reflect in the barrier
+            if(lambda*exp(phi)>1.)phi=2.*log(1./lambda)-phi;
+            lambda = lambda*exp(phi);
+
+            // now delete orders
+            deleteOrdersMarket(period-tau);
+
+            output << period << " , " << marketPrice << " , " << guru << " , " << maxLinks << " , " << lambda << "\n";          
             
         }
         output << std::endl;          
-            
+              
     }
     
     MSC_PROJECTS::Order Market::strategy(int agentID,int day, int period)
     {
         Order O;
         Agent& trader = marketAgents[agentID];
-        // calculate price
-        double pt=marketPrice*exp(trader.r);
+        // find agent we might follow 
+        Agent& following = marketAgents[trader.outgoingLink];
+        // calculate price, using trader's "r" and following agent's "r"
+        double pt=marketPrice*exp(omega*trader.r+(1-omega)*following.r);
+        
         // set time stamp 
         O.day = day;O.period=period;
         // and unique ID
@@ -461,10 +518,17 @@ namespace MSC_PROJECTS
         return -1;
     }
     
+    double Agent::wealth(double p) const 
+    {
+        return cash + delta * p;
+    }
+    
     void Market::printFullMarketData(std::ostream& output) const
     {
         output << "###############\n# MARKET DATA\n###############\n";
         output << " Market Price " << marketPrice << "\n";
+        const Agent& guruAgent = marketAgents[guru];
+        output << " Guru " << guruAgent.AgentIndex << " |  Wealth " << guruAgent.wealth(marketPrice) << " | Links " << guruAgent.incomingLinks.size() << "\n";
         output << "#######\n# MARKET BIDS\n######\n";
         for(auto b : limitOrderBookBids)output << b << "\n";
         output << "#######\n# MARKET ASKS\n######\n";
