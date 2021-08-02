@@ -70,7 +70,15 @@ namespace MSC_PROJECTS
         if(fabs(runningCash - A.availableCash)>1.e-8)
             output << "## ERROR :: CASH NOT ADDING UP " << std::endl;
         if(runningDelta!=A.availableDelta)
-            output << "## ERROR :: ASSETS NOT ADDING UP " << std::endl;        
+            output << "## ERROR :: ASSETS NOT ADDING UP " << std::endl;     
+        
+        output << " Outgoing Link: =>> " << A.outgoingLink << std::endl;
+        output << " Incoming Links:";
+        for(const auto& l : A.incomingLinks)
+        {
+            output << " <<= " << l << " ";
+        }
+        output  << std::endl;
         return output;
     }
     

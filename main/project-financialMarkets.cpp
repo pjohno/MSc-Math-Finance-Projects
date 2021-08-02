@@ -188,9 +188,9 @@ struct Market
 int main()
 {
     std::ofstream results("results.csv");
-    Market Mfull(100,100,100000);
+    Market Mfull(10,100,100000);
     Mfull.marketPrice=1000;
-    Mfull.runSimulation(200,200,0.05,results);
+    Mfull.runSimulation(10,20,0.05,results);
     Mfull.printFullMarketData();
 }
 
@@ -272,7 +272,15 @@ int main()
         if(fabs(runningCash - A.availableCash)>1.e-8)
             output << "## ERROR :: CASH NOT ADDING UP " << std::endl;
         if(runningDelta!=A.availableDelta)
-            output << "## ERROR :: ASSETS NOT ADDING UP " << std::endl;        
+            output << "## ERROR :: ASSETS NOT ADDING UP " << std::endl; 
+        
+        output << " Outgoing Link: =>> " << A.outgoingLink << std::endl;
+        output << " Incoming Links:";
+        for(const auto& l : A.incomingLinks)
+        {
+            output << " <<= " << l << " ";
+        }
+        output  << std::endl;
         return output;
     }
     
@@ -289,6 +297,28 @@ int main()
                 double bestAskPrice = limitOrderBookAsks.begin()->price;
                 marketPrice = ( bestAskPrice + bestBidPrice ) / 2.;
             }
+            
+            // create links to another agent
+            for(auto& A : marketAgents)
+            {
+                // randomly select an agent
+                std::uniform_int_distribution<> U(0,size()-1);
+                int possibleOutgoingLink = U(rng);
+                if(possibleOutgoingLink!=A.AgentIndex)
+                {
+                    // get the agent we used to follow
+                    Agent& oldFollowing = marketAgents[A.outgoingLink];
+                    // delete me from their incoming links
+                    oldFollowing.incomingLinks.erase(A.AgentIndex);
+                    // now update my link
+                    A.outgoingLink = possibleOutgoingLink;
+                    // get the agent we are now following
+                    Agent& newFollowing = marketAgents[possibleOutgoingLink];
+                    // add me to their incoming links
+                    newFollowing.incomingLinks.insert(A.AgentIndex);
+                }
+            }
+            
             
             // update agent expectations
             for(auto& A : marketAgents)
@@ -317,14 +347,21 @@ int main()
     Order Market::strategy(int agentID,int day, int period)
     {
         Order O;
+        // get agent trading
         Agent& trader = marketAgents[agentID];
-        // calculate price
+        // find agent we might follow 
+        Agent& following = marketAgents[trader.outgoingLink];
+        // calculate price, using trader's "r" and following agent's "r"
+        // UPDATE THIS LINE
         double pt=marketPrice*exp(trader.r);
+        
+        
         // set time stamp 
         O.day = day;O.period=period;
         // and unique ID
         O.agentID = trader.AgentIndex;
         std::uniform_real_distribution<> U(0.,1.);
+        
         if(pt>marketPrice)
         {
             O.oType = bid;

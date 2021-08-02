@@ -31,7 +31,7 @@ namespace MSC_PROJECTS
         // define dynamics
         state[0].cMax = [](double){return 1.;};
         // start warming up
-        state[0].eta = [&](double xtplus){
+        state[0].eta = [&](double xtplus,double ct){
             // if xt would be positive start warming up
             if(xtplus>-tol)return 1;
             else return 0;
@@ -52,7 +52,7 @@ namespace MSC_PROJECTS
         state[1].cMin = [](double){return 1.;};
         // define dynamics
         state[1].cMax = [](double){return 1.;};
-        state[1].eta = [&](double xtplus){
+        state[1].eta = [&](double xtplus,double ct){
             // switch to "on" state 2 if reach x=1
             if(xtplus>1.-tol)return 2;
             else return 1;
@@ -78,7 +78,7 @@ namespace MSC_PROJECTS
         state[2].cMin = [](double xt){return -1.;};
         // define dynamics
         state[2].cMax = [](double xt){return 1.;};
-        state[2].eta = [&](double xtplus){
+        state[2].eta = [&](double xtplus,double ct){
             // switch to "warming down" state 3 if reach x=1
             if(xtplus<1.+tol)return 3;
             else return 2;
@@ -102,7 +102,7 @@ namespace MSC_PROJECTS
         state[3].cMin = [](double){return -1.;};
         // define dynamics
         state[3].cMax = [](double){return -1.;};
-        state[3].eta = [&](double xtplus){
+        state[3].eta = [&](double xtplus,double ct){
             // switch to "off" state 0 if reach x=0
             if(xtplus<tol)return 0;
             else return 3;
@@ -152,7 +152,7 @@ namespace MSC_PROJECTS
                     auto objective = [&](double c){// calculate position of the characteristic using
                         double xHalfStar = state[U].x[j] + 0.5*state[U].f(state[U].x[j],c)*dt;
                         double xStar = state[U].x[j] + state[U].f(xHalfStar,c)*dt;
-                        int uStar = state[U].eta(xStar);
+                        int uStar = state[U].eta(xStar,c);
                         
                         double temp=0.;
                         if( xStar < ( state[uStar].x.front() - tol ) )
@@ -222,7 +222,7 @@ namespace MSC_PROJECTS
             double xHalfStar = xt + 0.5*state[ut].f(xt,ct)*dt;
             vt = vt + state[ut].Gamma(xHalfStar,electricityPrice(t[k]+0.5*dt),ct)*dt;
             xt = xt + state[ut].f(xHalfStar,ct)*dt;        
-            ut = state[ut].eta(xt);
+            ut = state[ut].eta(xt,ct);
             
             xt = std::max(state[ut].x.front(),std::min(xt,state[ut].x.back()));
             if(toMarkup)

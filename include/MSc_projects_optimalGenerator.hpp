@@ -30,7 +30,7 @@ namespace MSC_PROJECTS
         double f(double,double) const;
         std::function<double(double)> cMin;
         std::function<double(double)> cMax;
-        std::function<int(double)> eta;
+        std::function<int(double,double)> eta;
         
         // cost function
         std::function<double(double,double,double)> Gamma;

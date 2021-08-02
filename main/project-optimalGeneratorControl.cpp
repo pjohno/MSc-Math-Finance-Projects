@@ -139,7 +139,7 @@ struct GeneratorState
     std::function<double(double)> cMax;
     
     // eta is way that we jump between states
-    std::function<int(double)> eta;
+    std::function<int(double,double)> eta;
     
     // cost function
     std::function<double(double,double,double)> Gamma;
@@ -200,7 +200,7 @@ int main()
     G[0].cMin = [](double){return -1;};
     // define dynamics or maximum df/dx, normally positive number here
     G[0].cMax = [](double){return 1;};
-    G[0].eta = [](double xtplus){
+    G[0].eta = [](double xtplus,double c){
         // if xt would be positive, generator turned on
         if(xtplus>0.)return 1;  // 
         // otherwise stays off
@@ -221,7 +221,7 @@ int main()
     G[1].cMin = [](double){return -1;};
     // define dynamics, any positive number here
     G[1].cMax = [](double){return 1;};
-    G[1].eta = [](double xtplus){
+    G[1].eta = [](double xtplus,double c){
         // if xt would be negative, generator turns off
         if(xtplus<0.)return 0;
         // otherwise stays on
@@ -287,7 +287,7 @@ int Generator::solve()
                 auto objective = [&](double c){// calculate position of the characteristic using
                     double xHalfStar = state[U].x[j] + 0.5*state[U].f(state[U].x[j],c)*dt;
                     double xStar = state[U].x[j] + state[U].f(xHalfStar,c)*dt;
-                    int uStar = state[U].eta(xStar);
+                    int uStar = state[U].eta(xStar,c);
                     
                     double temp=0.;
                     if( xStar < ( state[uStar].x.front() - tol ) )
@@ -351,7 +351,7 @@ int Generator::outputPath(double x0,int u0,std::ostream& output)
         double xHalfStar = xt + 0.5*state[ut].f(xt,ct)*dt;
         vt = vt + state[ut].Gamma(xHalfStar,EP(t[k]+0.5*dt),ct)*dt;
         xt = xt + state[ut].f(xHalfStar,ct)*dt;        
-        ut = state[ut].eta(xt);
+        ut = state[ut].eta(xt,ct);
         
         xt = std::max(state[ut].x.front(),std::min(xt,state[ut].x.back()));
         
