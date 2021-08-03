@@ -403,7 +403,7 @@ int main()
             double xi1=U(rng),xi2=U(rng);
             int pT = marketPrice*(1-xi1)*(1-xi2) + pt*xi2 + 0.5;
             O.price=std::max(pT,O.price);
-            // can only commit to buying given what you've already bud for, so check available cash
+            // can only commit to buying given what you've already bid for, so check available cash
             std::uniform_real_distribution<> V(0.,std::max(0.,trader.availableCash)/O.price);
             O.vol = int( V(rng) );
         }
