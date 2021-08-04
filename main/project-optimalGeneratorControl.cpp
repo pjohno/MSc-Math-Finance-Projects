@@ -3,6 +3,7 @@
 #include <cmath>
 #include <vector>
 #include <functional>
+#include "MSc_projects_optimalGenerator.hpp"
 /** \brief bisection algorithm to find the min of a function
  * \details See findMaxBisection for details.
  * @param f the value function, f(x) which is to be minimised.
@@ -159,7 +160,7 @@ struct Generator
     std::vector<GeneratorState> state;
     
     // store the time grid in a vector
-    std::vector<double>  t;
+    std::vector<double> t;
     
     // solve from T to 0 using dynamic programming
     int solve();
@@ -176,8 +177,7 @@ struct Generator
     GeneratorState& operator[](unsigned int U){return state[U];}
     
 };
-
-
+/*
 int main()
 {
     int n=100;//number of steps per unit x,
@@ -254,9 +254,15 @@ int main()
     G.outputPath(0.,0);
     return 0;
 }
+*/
 
-
-
+int main()
+{
+    MSC_PROJECTS::Generator K;
+    K.karolisExampleSetup(10,120,1.e-6);
+    K.solve();
+    K.outputPath(0,1);
+}
 
 int Generator::solve()
 {

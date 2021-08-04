@@ -104,7 +104,7 @@ namespace MSC_PROJECTS
          * @param St current stock price
          * @return wealth \f$ W_t = B_t + \Delta S_t \f$
          */
-        double wealth(double p) const ;
+        double wealth(double St) const ;
         
         friend std::ostream& operator<<(std::ostream&,const Agent&);
     };
@@ -134,20 +134,6 @@ namespace MSC_PROJECTS
         // store the limit order book for bid offers
         std::set<Order> limitOrderBookBids;
         
-        // setup a market with n agents, each holding delta assets and cash
-        Market(int n,int delta,double cash):marketAgents(n){
-            rng.seed(rng.default_seed);
-            for(unsigned int i=0;i<marketAgents.size();i++)
-            {
-                marketAgents[i].AgentIndex=i;
-                marketAgents[i].delta = delta;
-                marketAgents[i].availableDelta = delta;
-                marketAgents[i].cash = cash;
-                marketAgents[i].availableCash = cash;
-                marketAgents[i].outgoingLink=i;
-            }
-        }
-        
         // generate an order for a given agent, in a particular time period
         Order strategy(int trader,int period,int tau);
         
@@ -167,6 +153,20 @@ namespace MSC_PROJECTS
         
         // cancel all orders from both trader's and market's books if older than time "s"
         int deleteOrdersMarket(int s); 
+        
+        // setup a market with n agents, each holding delta assets and cash
+        Market(int n,int delta,double cash):marketAgents(n){
+            rng.seed(rng.default_seed);
+            for(unsigned int i=0;i<marketAgents.size();i++)
+            {
+                marketAgents[i].AgentIndex=i;
+                marketAgents[i].delta = delta;
+                marketAgents[i].availableDelta = delta;
+                marketAgents[i].cash = cash;
+                marketAgents[i].availableCash = cash;
+                marketAgents[i].outgoingLink=i;
+            }
+        }
         
         // run a simulation with 
         void runSimulation(int totalPeriods, int totalIntraPeriods,int tau,double sigma,double A,double sigmaLambda,std::ostream &output=std::cout);

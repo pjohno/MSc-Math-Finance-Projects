@@ -45,6 +45,8 @@ namespace MSC_PROJECTS
         double tol;
         
         int defaultSetup(int n,int m,double T,double tol);
+
+        int karolisExampleSetup(int stepsPerHour,double T,double tol_);
         
         std::vector<GeneratorState> state;
         std::vector<double> t;
@@ -52,9 +54,6 @@ namespace MSC_PROJECTS
         int solve();
         
         int outputPath(double x0,int u0,std::ostream& output=std::cout,bool toMarkup=true);
-        
-        template <class T>
-        int setupState(int state,int n,int m,double tol,const T &params);
         
         GeneratorState& operator[](unsigned int U){return state[U];}
         
