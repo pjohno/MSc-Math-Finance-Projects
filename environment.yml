@@ -9,4 +9,6 @@ dependencies:
   - xeus-cling
   - notebook
   - boost
-
+  - requests
+  - pandas
+  - xmltodict
