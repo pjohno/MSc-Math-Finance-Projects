@@ -1,5 +1,9 @@
 #ADD_EXECUTABLE( MSc_projects_hedgefund.out project-hedge-funds-analysis.cpp )
 
+ADD_EXECUTABLE( MSc_projects_FokkerPlanck.out project-Fokker-Planck.cpp )
+ TARGET_LINK_LIBRARIES( MSc_projects_FokkerPlanck.out mscmathfinanceprojects)
+
+
 ADD_EXECUTABLE( MSc_projects_optimalGenerator.out project-optimalGeneratorControl.cpp )
  TARGET_LINK_LIBRARIES( MSc_projects_optimalGenerator.out mscmathfinanceprojects)
 

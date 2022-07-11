@@ -8,7 +8,7 @@ dependencies:
   - cling
   - xeus-cling
   - notebook
-  - boost
+  - boost=1.65.1
   - requests
   - pandas
   - xmltodict

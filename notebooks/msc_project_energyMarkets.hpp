@@ -1,4 +1,3 @@
-// load libraries
 #include "msc_cling_libs_loader.hpp"
 
 // include standard stuff
