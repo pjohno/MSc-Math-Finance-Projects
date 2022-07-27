@@ -1,6 +1,7 @@
 
 SET(MY_LIBRARY_SRCS  
 MSc_project_financialMarket.cpp
+MSc_projects_storage.cpp
 MSc_projects_pde_solvers.cpp
 MSc_projects_quad.cpp
 MSc_projects_perpetual_bermudan_put.cpp
