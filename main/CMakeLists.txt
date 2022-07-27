@@ -1,5 +1,7 @@
 #ADD_EXECUTABLE( MSc_projects_hedgefund.out project-hedge-funds-analysis.cpp )
 
+ADD_EXECUTABLE( MSc_projects_storage.out project-storage.cpp )
+
 ADD_EXECUTABLE( MSc_projects_FokkerPlanck.out project-Fokker-Planck.cpp )
  TARGET_LINK_LIBRARIES( MSc_projects_FokkerPlanck.out mscmathfinanceprojects)
 
